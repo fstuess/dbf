@@ -27,4 +27,4 @@ Library
                         Database.XBase.Dbf.Handle
                         Database.XBase.Dbf.Structures
                         Database.XBase.Dbf.Year8
-  build-depends:        base >= 3 && <5, binary, bytestring, rwlock, monad-loops
+  build-depends:        base >= 3 && <5, binary, bytestring, rwlock, monad-loops, template-haskell

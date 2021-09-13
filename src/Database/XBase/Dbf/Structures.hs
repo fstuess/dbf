@@ -1,5 +1,5 @@
-{-# LANGUAGE RecordWildCards, EmptyDataDecls #-}
-module Database.XBase.Dbf.Structures 
+{-# LANGUAGE RecordWildCards #-}
+module Database.XBase.Dbf.Structures
     ( DbfDate(..), DbfFieldDescriptor(..), DbfRecord(..)
     , DbfDatabaseContainer{- (..) -}, DbfFileHeader(..)
     , putDbfShortDate, getDbfShortDate
@@ -18,6 +18,7 @@ import Data.Word
 import qualified Data.ByteString.Lazy as BS
 import Control.Monad.Loops
 import Data.Maybe
+import Language.Haskell.TH.Lib (derivClause)
 
 putFlag True  = putWord8 1
 putFlag False = putWord8 0
@@ -40,8 +41,7 @@ putDbfShortDate DbfDate {..} = do
 getDbfShortDate = do
     dbfYear     <- getYear8
     dbfMonth    <- getWord8
-    dbfDay      <- getWord8
-    return (DbfDate dbfYear dbfMonth dbfDay)
+    DbfDate dbfYear dbfMonth <$> getWord8
     {- 3 bytes total -}
 
 data DbfFieldDescriptor = DbfFieldDescriptor
@@ -57,8 +57,8 @@ data DbfFieldDescriptor = DbfFieldDescriptor
 
 dbfRecLengthForFields fields = 1 + sum (map dbfFieldLength fields)
 
-putDbfFieldName bs 
-    | len > maxLen  = fail ("putDbfFieldName: Field name too long (" ++ show len ++ " bytes)")
+putDbfFieldName bs
+    | len > maxLen  = error ("putDbfFieldName: Field name too long (" ++ show len ++ " bytes)")
     | otherwise = do
         putLazyByteString bs
         putLazyByteString (BS.replicate (maxLen-len) 0)
@@ -106,9 +106,10 @@ getDbfFieldDescriptor = do
                                         , dbfFieldIndexedFlag   = dbfFieldIndexedFlag
                                         }
 
-data DbfDatabaseContainer -- not implemented
-instance Eq DbfDatabaseContainer
-instance Show DbfDatabaseContainer
+data DbfDatabaseContainer = DbfDatabaseContainer -- not implemented
+    deriving (Show, Eq)
+-- instance Eq DbfDatabaseContainer
+-- #instance Show DbfDatabaseContainer
 
 data DbfFileHeader = DbfFileHeader
     { dbfFileSignature      :: Word8
@@ -145,9 +146,9 @@ putDbfFileHeader DbfFileHeader {..} = do
 getDbfFileHeader = do               start <- bytesRead
     {-  0: Signature -}             dbfFileSignature    <- getWord8
     {-  1: Date of last update -}   dbfFileUpdateDate   <- getDbfShortDate
-    {-  4: Number of records -}     dbfFileNumRecords   <- getWord32le 
-    {-  8: Length of header -}      dbfFileHdrLength    <- getWord16le 
-    {- 10: Length of each record -} dbfFileRecLength    <- getWord16le 
+    {-  4: Number of records -}     dbfFileNumRecords   <- getWord32le
+    {-  8: Length of header -}      dbfFileHdrLength    <- getWord16le
+    {- 10: Length of each record -} dbfFileRecLength    <- getWord16le
     {- 12: reserved (2 bytes) -}    getWord16le         -- discarding result
     {- 14: Incomplete TX -}         dbfFileTxInc        <- getFlag
     {- 15: Encryption flag -}       dbfFileEncr         <- getFlag
