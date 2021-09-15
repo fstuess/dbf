@@ -19,8 +19,7 @@ description:            A simple interface for reading and writing XBase dbf
 
 source-repository head
   type:                 git
-  location:             https://github.com/mokus0/dbf.git
-
+  location:             https://github.com/fstuess/dbf.git
 Library
   hs-source-dirs:       src
   exposed-modules:      Database.XBase.Dbf
