@@ -200,7 +200,7 @@ getDbfRecord recLen = do
                         0x2A {-deleted-}    -> return (Just True)
                         0x20 {-valid-}      -> return (Just False)
                         0x1A {-EOF-}        -> return Nothing
-                        _ {-defective dbf-} -> fail "getDbfRecord: corrupt or non-dbf file (invalid record marker found)"
+                        _ {-defective dbf-} -> error "getDbfRecord: corrupt or non-dbf file (invalid record marker found)"
                     whenJust deleted $ \deleted -> do
                             dat <- getLazyByteString (recLen - 1)
                             return (Just (DbfRecord deleted dat))
